@@ -1,0 +1,352 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+	<bean id="cust_sale" class="nc.ui.bd.uitabextend.DefaultUIExtComponent">
+		<property name="actions">
+			<list>
+				<ref bean="custSaleEditAction" />
+				<ref bean="custSaleDeleteAction" />
+				<ref bean="custaddressAction" />
+				<ref bean="separatorAction" />
+				<ref bean="custSaleRefreshAction" />
+				<ref bean="separatorAction" />
+				<ref bean="custSaleListPrintActionGroup" />
+			</list>
+		</property>
+		<property name="exComponent" ref="custSaleListView" />
+		<property name="closingListener" ref="custSaleClosingListener" />
+	</bean>
+
+	<bean id="userdefitemSalePreprocessor" class="nc.ui.uif2.editor.UserdefitemUIPreprocessor"
+		init-method="init">
+		<property name="container" ref="userdefitemContainer" />
+		<property name="params">
+			<list>
+				<bean class="nc.ui.uif2.userdefitem.QueryParam">
+					<property name="mdfullname" value="uap.custsale" />
+				</bean>
+			</list>
+		</property>
+	</bean>
+	<!--  ############## model & service ################### -->
+
+	<bean id="custSaleAppModelsService" class="nc.ui.bd.cust.sale.model.CustSaleAppModelService">
+	</bean>
+
+	<bean id="custSaleAppModel" class="nc.ui.bd.pub.orginfo.model.OrgInfoBillManageModel">
+		<property name="service">
+			<ref bean="custSaleAppModelsService" />
+		</property>
+		<property name="businessObjectAdapterFactory">
+			<bean class="nc.vo.bd.meta.GeneralBDObjectAdapterFactory">
+				<property name="mode" value="VO" />
+			</bean>
+		</property>
+		<property name="context">
+			<ref bean="context" />
+		</property>
+	</bean>
+
+	<bean id="custSaleModelDataManager" class="nc.ui.bd.cust.sale.model.CustSaleDataManager">
+		<property name="model">
+			<ref bean="custSaleAppModel" />
+		</property>
+	</bean>
+
+	<!-- Mediator 负责基本信息与组织信息之间的交互（处理数据加载等） -->
+	<bean id="custSaleMediator" class="nc.ui.bd.pub.orginfo.model.OrgInfoMediator">
+		<property name="baseModel" ref="baseinfoModel" />
+		<property name="modelDataManager" ref="custSaleModelDataManager" />
+		<property name="orgInfoModel" ref="custSaleAppModel" />
+		<property name="orgInfoPanel" ref="custSaleListView" />
+	</bean>
+
+	<!-- 界面元素 ###########################################################-->
+	<!-- 列表视图 组织页签入口，须实现ITabbedPaneAwareComponent -->
+	<bean id="custSaleListView" class="nc.ui.bd.cust.sale.view.CustSaleListView"
+		init-method="initUI">
+		<property name="templateContainer" ref="templateContainer" />
+		<property name="model" ref="custSaleAppModel" />
+		<property name="nodekey" value="sale" />
+		<property name="name">
+			<bean class="nc.ui.uif2.I18nFB">
+				<property name="resDir" value="10140cub"/>
+				<property name="defaultValue" value="销售信息"/>
+				<property name="resId" value="110140cub0010"/>
+			</bean>
+		</property>
+		<property name="userdefitemListPreparator">
+			<bean class="nc.ui.uif2.editor.UserdefitemContainerListPreparator">
+				<property name="container" ref="userdefitemContainer" />
+				<property name="params">
+					<list>
+						<bean class="nc.ui.uif2.editor.UserdefQueryParam">
+							<property name="mdfullname" value="uap.custsale" />
+							<property name="pos" value="0" />
+							<property name="prefix" value="def" />
+						</bean>
+					</list>
+				</property>
+			</bean>
+		</property>
+	</bean>
+
+	<!-- editor -->
+	<bean id="custSaleEditor" class="nc.ui.bd.cust.sale.view.CustSaleEditor"
+		init-method="initUI">
+		<property name="model" ref="custSaleAppModel" />
+		<property name="templateContainer" ref="templateContainer" />
+		<property name="nodekey" value="sale" />
+		<property name="bodyActionMap">
+			<map>
+				<entry key="custaddress">
+					<list>
+						<bean class="nc.ui.uif2.actions.AddLineAction">
+							<property name="model" ref="custSaleAppModel" />
+							<property name="cardpanel" ref="custSaleEditor" />
+						</bean>
+						<bean class="nc.ui.uif2.actions.DelLineAction">
+							<property name="model" ref="custSaleAppModel" />
+							<property name="cardpanel" ref="custSaleEditor" />
+						</bean>
+					</list>
+				</entry>
+			</map>
+		</property>
+		<property name="userdefitemPreparator">
+			<bean class="nc.ui.uif2.editor.UserdefitemContainerPreparator">
+				<property name="container" ref="userdefitemContainer" />
+				<property name="params">
+					<list>
+						<bean class="nc.ui.uif2.editor.UserdefQueryParam">
+							<property name="mdfullname" value="uap.custsale" />
+							<property name="pos" value="0" />
+							<property name="prefix" value="def" />
+						</bean>
+					</list>
+				</property>
+			</bean>
+		</property>
+		<property name="actions">
+			<list>
+				<ref bean="custSaleFirstLineAction" />
+				<ref bean="custSalePreLineAction" />
+				<ref bean="custSaleNextLineAction" />
+				<ref bean="custSaleLastLineAction" />
+			</list>
+		</property>
+	</bean>
+
+	<!-- 对话框工具（处理对话框的显示操作） -->
+	<bean id="custSaleDialogMediator" class="nc.ui.bd.pub.orginfo.model.OrgInfoCardDialogMediator">
+		<property name="model" ref="custSaleAppModel" />
+		<property name="dialogContainer" ref="custSaleDialogContainer" />
+		<property name="name">
+			<bean class="nc.ui.uif2.I18nFB">
+				<property name="resDir" value="10140cub"/>
+				<property name="defaultValue" value="销售信息"/>
+				<property name="resId" value="110140cub0010"/>
+			</bean>
+		</property>
+		<property name="closingListener" ref="custSaleClosingListener" />
+	</bean>
+
+	<!-- 对话框显示界面dialogContainer -->
+	<bean id="custSaleDialogContainer" class="nc.ui.uif2.TangramContainer"
+		init-method="initUI">
+		<property name="constraints">
+			<list>
+				<!-- 组织面板 -->
+				<bean class="nc.ui.uif2.tangramlayout.TangramLayoutConstraint">
+					<property name="newComponent" ref="custSaleEditor" />
+					<property name="newComponentName" >
+						<bean class="nc.ui.uif2.I18nFB">
+							<property name="resDir" value="10140cub"/>
+							<property name="defaultValue" value="销售信息"/>
+							<property name="resId" value="110140cub0010"/>
+						</bean>
+					</property>
+				</bean>
+			</list>
+		</property>
+		<property name="actions">
+			<list>
+				<ref bean="custSaleEditAction" />
+				<ref bean="custSaleDeleteAction" />
+				<ref bean="separatorAction" />
+				<ref bean="custSaleRefreshSingleAction" />
+				<ref bean="separatorAction" />
+				<ref bean="custSalePrintActionGroup" />
+			</list>
+		</property>
+		<property name="editActions">
+			<list>
+				<ref bean="custSaleSaveAction" />
+				<ref bean="separatorAction" />
+				<ref bean="custSaleCancelAction" />
+			</list>
+		</property>
+		<property name="model">
+			<ref bean="custSaleAppModel" />
+		</property>
+	</bean>
+
+	<!-- 编辑态按钮 -->
+	<bean id="custSaleEditAction" class="nc.ui.uif2.actions.EditAction">
+		<property name="code" value="SaEdit" />
+		<property name="model" ref="custSaleAppModel" />
+		<property name="resourceCode" value="custsaleclass"></property>
+		<property name="mdOperateCode" value="edit"></property>
+	</bean>
+
+	<bean id="custSaleDeleteAction" class="nc.ui.uif2.actions.DeleteAction">
+		<property name="code" value="SaDelete" />
+		<property name="model" ref="custSaleAppModel" />
+		<property name="resourceCode" value="custsaleclass"></property>
+		<property name="mdOperateCode" value="delete"></property>
+	</bean>
+   <bean id="custaddressAction" class="nc.ui.bd.cust.baseinfo.action.CustAddressAction">
+    <property name="model" ref="custSaleAppModel"></property>
+    <property name="funnode" value="10140CAD"></property>
+    <property name="refreshSingleAction" ref="custSaleRefreshSingleAction"></property>
+   </bean>
+
+	<!-- 查询查找按钮 -->
+	<bean id="custSaleRefreshAction" class="nc.ui.uif2.actions.RefreshAllAction">
+		<property name="code" value="SaRefresh" />
+		<property name="model" ref="custSaleAppModel" />
+		<property name="manager" ref="custSaleModelDataManager" />
+	</bean>
+
+
+	<bean id="custSaleRefreshSingleAction" class="nc.ui.uif2.actions.RefreshSingleAction">
+		<property name="code" value="SaRefresh" />
+		<property name="model" ref="custSaleAppModel" />
+	</bean>
+
+	<!-- 编辑态按钮 -->
+	<bean id="custSaleSaveAction" class="nc.ui.uif2.actions.SaveAction">
+		<property name="code" value="SaSave" />
+		<property name="model" ref="custSaleAppModel" />
+		<property name="editor" ref="custSaleEditor" />
+		<property name="interceptor" ref="compositeActionInterceptor" />
+	</bean>
+		<!-- 拦截组合器 -->
+	<bean id="compositeActionInterceptor" class="nc.ui.bd.pub.actions.CompositeActionInterceptor">
+		<property name="interceptors">
+			<list>
+				<ref bean="bdSaveActionInterceptor" />
+			</list>
+		</property>
+	</bean>
+	<!-- 验证公式拦截器 -->
+	<bean id="bdSaveActionInterceptor" class="nc.ui.bd.pub.actions.BDSaveActionInterceptor">
+		<property name="editor" ref="custSaleEditor" />
+	</bean>
+
+	<bean id="custSaleCancelAction" class="nc.ui.uif2.actions.CancelAction">
+		<property name="code" value="SaCancel" />
+		<property name="model" ref="custSaleAppModel" />
+	</bean>
+
+	<!-- 输入输出按钮 -->
+	<bean id="custSaleListPrintActionGroup" class="nc.funcnode.ui.action.GroupAction">
+		<property name="code" value="SaPrintGroup" />
+		<property name="actions">
+			<list>
+				<ref bean="custSaleListTempletPrintAction" />
+				<ref bean="custSaleListTempletPreviewAction" />
+				<ref bean="custSaleListOutputAction" />
+			</list>
+		</property>
+	</bean>
+
+	<bean id="custSaleListTempletPreviewAction" class="nc.ui.uif2.actions.TemplatePreviewAction">
+		<property name="code" value="SaTempPreview" />
+		<property name="model" ref="custSaleAppModel" />
+		<property name="nodeKey" value="salelist" />
+		<property name="datasource" ref="custSaleListardDataSource" />
+	</bean>
+
+	<bean id="custSaleListTempletPrintAction" class="nc.ui.uif2.actions.TemplatePrintAction">
+		<property name="code" value="SaTempPrint" />
+		<property name="model" ref="custSaleAppModel" />
+		<property name="nodeKey" value="salelist" />
+		<property name="datasource" ref="custSaleListardDataSource" />
+	</bean>
+
+	<bean id="custSaleListOutputAction" class="nc.ui.uif2.actions.OutputAction">
+		<property name="code" value="SaOutput"></property>
+		<property name="model" ref="custSaleAppModel" />
+		<property name="nodeKey" value="salelist" />
+		<property name="datasource" ref="custSaleListardDataSource" />
+	</bean>
+
+	<bean id="custSaleListardDataSource" class="nc.ui.bd.pub.actions.print.MetaDataAllDatasSource">
+		<property name="model" ref="custSaleAppModel" />
+	</bean>
+
+	<bean id="custSalePrintActionGroup" class="nc.funcnode.ui.action.GroupAction">
+		<property name="code" value="SaPrintGroup" />
+		<property name="actions">
+			<list>
+				<ref bean="custSaleTempletPrintAction" />
+				<ref bean="custSaleTempletPreviewAction" />
+				<ref bean="custSaleOutputAction" />
+			</list>
+		</property>
+	</bean>
+
+	<bean id="custSaleTempletPreviewAction" class="nc.ui.uif2.actions.TemplatePreviewAction">
+		<property name="code" value="SaTempPreview" />
+		<property name="model" ref="custSaleAppModel" />
+		<property name="nodeKey" value="salecard" />
+		<property name="datasource" ref="custSaleCardDataSource" />
+		<property name="printDlgParentConatiner" ref="custSaleDialogContainer" />
+	</bean>
+	<bean id="custSaleTempletPrintAction" class="nc.ui.uif2.actions.TemplatePrintAction">
+		<property name="code" value="SaTempPrint" />
+		<property name="model" ref="custSaleAppModel" />
+		<property name="nodeKey" value="salecard" />
+		<property name="datasource" ref="custSaleCardDataSource" />
+		<property name="printDlgParentConatiner" ref="custSaleDialogContainer" />
+	</bean>
+	<bean id="custSaleOutputAction" class="nc.ui.uif2.actions.OutputAction">
+		<property name="code" value="SaOutput"></property>
+		<property name="model" ref="custSaleAppModel" />
+		<property name="nodeKey" value="salecard" />
+		<property name="datasource" ref="custSaleCardDataSource" />
+		<property name="printDlgParentConatiner" ref="custSaleDialogContainer" />
+	</bean>
+
+	<bean id="custSaleCardDataSource"
+		class="nc.ui.bd.pub.actions.print.MetaDataSingleSelectDataSource">
+		<property name="model" ref="custSaleAppModel" />
+	</bean>
+
+	<!-- 浏览按钮 卡片界面按钮-->
+	<bean id="custSaleFirstLineAction" class="nc.ui.uif2.actions.FirstLineAction">
+		<property name="model" ref="custSaleAppModel" />
+	</bean>
+	<bean id="custSaleNextLineAction" class="nc.ui.uif2.actions.NextLineAction">
+		<property name="model" ref="custSaleAppModel" />
+	</bean>
+	<bean id="custSalePreLineAction" class="nc.ui.uif2.actions.PreLineAction">
+		<property name="model" ref="custSaleAppModel" />
+	</bean>
+	<bean id="custSaleLastLineAction" class="nc.ui.uif2.actions.LastLineAction">
+		<property name="model" ref="custSaleAppModel" />
+	</bean>
+
+
+	<!-- closingListener -->
+	<bean id="custSaleClosingListener" class="nc.ui.uif2.FunNodeClosingHandler">
+		<property name="model" ref="custSaleAppModel" />
+		<property name="saveaction" ref="custSaleSaveAction" />
+		<property name="cancelaction" ref="custSaleCancelAction" />
+	</bean>
+
+
+</beans>
